@@ -42,3 +42,6 @@ Or if you do not have @online support:
     note = {\url{https://github.com/com-puter-tips/Links-Extractor}},
   }
 ```
+
+
+Custom User Agent from this stack overflow answer : https://stackoverflow.com/a/73385650/16161618
