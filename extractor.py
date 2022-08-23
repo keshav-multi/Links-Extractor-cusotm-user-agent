@@ -27,56 +27,75 @@ reffer_list=[
     'https://gem.gov.in/'
 ]
 
+to_scrape = []
+scraped = set()
+links_passed = sys.argv[1:]
+for link_passed in links_passed:
+    to_scrape.append(link_passed)
+
+extlist = set()
+intlist = set()
 
 try:
-    for link in sys.argv[1:]:
-        headers = {'Connection': 'keep-alive',
-            'Cache-Control': 'max-age=0',
-            'Upgrade-Insecure-Requests': '1',
-            'User-Agent': random.choice(user_agent_list),
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-            'Accept-Encoding': 'gzip, deflate',
-            'Accept-Language': 'en-US,en;q=0.9,fr;q=0.8',
-            'referer': random.choice(reffer_list)}
+    for link in to_scrape:
+        print("Left to scrape : ", len(to_scrape), '\nScraped : ', len(scraped), '\n')
+        try:
+        
+            headers = {'Connection': 'keep-alive',
+                'Cache-Control': 'max-age=0',
+                'Upgrade-Insecure-Requests': '1',
+                'User-Agent': random.choice(user_agent_list),
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+                'Accept-Encoding': 'gzip, deflate',
+                'Accept-Language': 'en-US,en;q=0.9,fr;q=0.8',
+                'referer': random.choice(reffer_list)}
 
-        page = requests.get(link, headers=headers)
-        soup = BeautifulSoup(page.text, "lxml")
-        extlist = set()
-        intlist = set()
+            page = requests.get(link, headers=headers)
+            soup = BeautifulSoup(page.text, "lxml")
 
-        for a in soup.findAll("a", attrs={"href": True}):
-            if (
-                len(a["href"].strip()) > 1
-                and a["href"][0] != "#"
-                and "javascript:" not in a["href"].strip()
-                and "mailto:" not in a["href"].strip()
-                and "tel:" not in a["href"].strip()
-            ):
-                if "http" in a["href"].strip() or "https" in a["href"].strip():
-                    if (
-                        urlparse(link).netloc.lower()
-                        in urlparse(a["href"].strip()).netloc.lower()
-                    ):
-                        intlist.add(a["href"])
+
+            for a in soup.findAll("a", attrs={"href": True}):
+                if (
+                    len(a["href"].strip()) > 1
+                    and a["href"][0] != "#"
+                    and "javascript:" not in a["href"].strip()
+                    and "mailto:" not in a["href"].strip()
+                    and "tel:" not in a["href"].strip()
+                ):
+                    if "http" in a["href"].strip() or "https" in a["href"].strip():
+                        if (
+                            urlparse(link).netloc.lower()
+                            in urlparse(a["href"].strip()).netloc.lower()
+                        ):
+                            intlist.add(a["href"])
+                            if a["href"] not in scraped and a["href"] not in to_scrape:
+                                to_scrape.append(a["href"])
+                        else:
+                            extlist.add(a["href"])
                     else:
-                        extlist.add(a["href"])
-                else:
-                    intlist.add(a["href"])
+                        intlist.add(a["href"])
+                        if a["href"] not in scraped and a["href"] not in to_scrape:
+                            to_scrape.append(a["href"])
+        except:
+            pass
+        to_scrape.remove(link)
+        scraped.add(link)
 
-        print("\n")
-        print(link)
-        print("---------------------")
-        print("\n")
-        print(str(len(intlist)) + " internal links found:")
-        print("\n")
-        for il in intlist:
-            print(il)
-        print("\n")
-        print(str(len(extlist)) + " external links found:")
-        print("\n")
-        for el in extlist:
-            print(el)
-        print("\n")
+    print("---------------------")
+    print("\n")
+    print(str(len(intlist)) + " internal links found:")
+    print("\n")
+    for il in intlist:
+        print(il)
+    print("\n")
+    print(str(len(extlist)) + " external links found:")
+    print("\n")
+    for el in extlist:
+        print(el)
+    print("\n")
 
 except Exception as e:
     print(e)
+    import traceback
+    traceback.print_exc()
+
